@@ -1,17 +1,12 @@
 ﻿var lines = File.ReadAllLines("input.txt");
 
+const string allItemTypes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
 static IEnumerable<string> Compartmentize(string rucksack) =>
     new string[] {rucksack[..(rucksack.Length / 2)], rucksack[(rucksack.Length / 2)..]};
 
-static IEnumerable<char> CommonItems(IEnumerable<string> groups)
-{
-    var s = new HashSet<char>(groups.First().ToCharArray());
-    foreach (var g in groups.Skip(1))
-    {
-        s.IntersectWith(new HashSet<char>(g.ToCharArray()));
-    }
-    return s;
-}
+static IEnumerable<char> CommonItems(IEnumerable<string> groups) =>
+    groups.Aggregate((IEnumerable<char>)allItemTypes, (a, e) => a.Intersect(e));
 
 static int Priority(char itemType) =>
     (int)itemType switch {
