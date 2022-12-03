@@ -9,11 +9,7 @@ static IEnumerable<char> CommonItems(IEnumerable<string> groups) =>
     groups.Aggregate((IEnumerable<char>)allItemTypes, (a, e) => a.Intersect(e));
 
 static int Priority(char itemType) =>
-    (int)itemType switch {
-        var p when 65 < p && p <= 90 => p - 38,
-        var p when 97 < p && p <= 122 => p - 96,
-        _ => throw new ArgumentException("Unknown item type")
-    };
+    char.IsAsciiLetterUpper(itemType) ? itemType - 38 : itemType - 96;
 
 var answer1 = lines.Select(Compartmentize).SelectMany(CommonItems).Select(Priority).Sum();
 Console.WriteLine($"Answer part 1: {answer1}");
