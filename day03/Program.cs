@@ -1,7 +1,7 @@
 ﻿var lines = File.ReadAllLines("input.txt");
 
 static IEnumerable<string> Compartmentize(string rucksack) =>
-    new string[] {rucksack.Substring(0, rucksack.Length/2), rucksack.Substring(rucksack.Length/2)};
+    new string[] {rucksack[..(rucksack.Length / 2)], rucksack[(rucksack.Length / 2)..]};
 
 static IEnumerable<char> CommonItems(IEnumerable<string> groups)
 {
