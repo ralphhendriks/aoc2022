@@ -54,11 +54,8 @@ static Stack<char>[] ApplyStepCrateMover9001(Stack<char>[] stacks, string stepLi
     return stacks;
 }
 
-static string TopCrates(Stack<char>[] stacks)
-{
-    var chars = stacks.Select(s => s.Peek()).ToArray();
-    return string.Join(string.Empty, chars);
-}
+static string TopCrates(Stack<char>[] stacks) =>
+    string.Join(string.Empty, stacks.Select(s => s.Peek()).ToArray());
 
 var (stackLines, numberLine, steps) = SplitInputLines(lines);
 var highestStack = numberLine.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).Last();
