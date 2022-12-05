@@ -14,7 +14,7 @@ static Stack<char>[] BuildStacks(string[] stackLines, int highestStack)
     {
         stackLines[i]
             .Chunk(4)
-            .Select(g => g.SingleOrDefault(c => c != ' ' && c != '[' && c != ']'))
+            .Select(g => g.SingleOrDefault(c => char.IsAsciiLetterUpper(c)))
             .Select((crate, index) => (crate, index))
             .ToList()
             .ForEach(p =>{
