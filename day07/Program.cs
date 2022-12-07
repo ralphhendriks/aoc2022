@@ -25,7 +25,7 @@ foreach (var l in lines)
     else
     {
         var parts = l.Split(' ');
-        pwd.AddFile(parts[1], int.Parse(parts[0]));
+        pwd.AddFile(int.Parse(parts[0]));
     }
 }
 
@@ -43,14 +43,14 @@ System.Console.WriteLine($"Answer part 2: {answer2}");
 public class Directory
 {
     private readonly Directory? _parent;
-    private readonly Dictionary<string, int> _files = new();
+    private int _totalFileSize;
     private readonly Dictionary<string, Directory> _directories = new();
 
     private Directory(Directory? parent) => _parent = parent;
 
     public static Directory Root => new Directory(null);
 
-    public void AddFile(string name, int size) => _files.Add(name, size);
+    public void AddFile(int size) => _totalFileSize += size;
 
     public void AddDirectory(string name) => _directories.Add(name, new Directory(this));
 
@@ -58,7 +58,7 @@ public class Directory
 
     public Directory Parent => _parent ?? this;
 
-    public int Size() => _files.Values.Sum() + _directories.Values.Select(d => d.Size()).Sum();
+    public int Size() => _totalFileSize + _directories.Values.Select(d => d.Size()).Sum();
 
     public IEnumerable<int> GetDirectorySizes() =>
         _directories
