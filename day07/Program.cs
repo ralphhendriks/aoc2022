@@ -30,15 +30,12 @@ foreach (var l in lines)
 }
 
 var directorySizes = root.GetDirectorySizes().Concat(new int[] {root.Size()});
+
 var answer1 = directorySizes.Where(s => s <= 100_000).Sum();
 Console.WriteLine($"Answer part 1: {answer1}");
 
-var freeSpace = 70_000_000 - root.Size();
-System.Console.WriteLine($"Free space: {freeSpace}");
-var sizeToDelete = 30_000_000 - freeSpace;
-System.Console.WriteLine($"To clean: {sizeToDelete}");
-var answer2 = directorySizes.Order().First(s => s > sizeToDelete);
-System.Console.WriteLine($"Answer part 2: {answer2}");
+var answer2 = directorySizes.Order().First(s => s > root.Size() - 40_000_000);
+Console.WriteLine($"Answer part 2: {answer2}");
 
 public class Directory
 {
