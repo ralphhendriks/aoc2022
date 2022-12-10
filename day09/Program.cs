@@ -1,4 +1,6 @@
-﻿var lines = File.ReadAllLines("input.txt");
+﻿using Day09;
+
+var lines = File.ReadAllLines("input.txt");
 
 static (int, int) MoveHead((int, int) h, char move)
 {
@@ -12,44 +14,22 @@ static (int, int) MoveHead((int, int) h, char move)
     };
 }
 
-static (int, int) MoveTail((int, int) h, (int, int) t)
+static (int, int) MoveTail((int, int) t, (int, int) h)
 {
     var (hx, hy) = h;
     var (tx, ty) = t;
     return (hx - tx, hy - ty) switch {
-        ( 2,  1) => (tx + 1, ty + 1),
-        ( 2,  0) => (tx + 1, ty    ),
-        ( 2, -1) => (tx + 1, ty - 1),
-        (-2,  1) => (tx - 1, ty + 1),
-        (-2,  0) => (tx - 1, ty    ),
-        (-2, -1) => (tx - 1, ty - 1),
-        ( 1,  2) => (tx + 1, ty + 1),
-        ( 0,  2) => (tx    , ty + 1),
-        (-1,  2) => (tx - 1, ty + 1),
-        ( 1, -2) => (tx + 1, ty - 1),
-        ( 0, -2) => (tx    , ty - 1),
-        (-1, -2) => (tx - 1, ty - 1),
+        var (dx, dy) when (Math.Abs(dx) > 1 || Math.Abs(dy) > 1)=> (tx + Math.Sign(dx), ty + Math.Sign(dy)),
         _ => (tx, ty)
     };
 }
-
-var positions =
+var headPositions =
     lines
-    .SelectMany(l =>
-        Enumerable.Range(1, int.Parse(l[2..]))
-        .Select(_ => l[0]))
-    .Aggregate(new List<((int, int), (int, int))> { ((0, 0), (0, 0)) }, (List<((int, int), (int, int))> l, char m) =>
-    {
-        var (h, t) = l.Last();
-        var nh = MoveHead(h, m);
-        var nt = MoveTail(nh, t);
-        l.Add((nh, nt));
-        return l;
-    });
+    .SelectMany(l => Enumerable.Repeat(l[0], int.Parse(l[2..])))
+    .Scan((0, 0), MoveHead);
 
-var answer1 =
-    positions
-    .Select(p => p.Item2)
-    .GroupBy(p => p)
-    .Count();
+var answer1 = headPositions.Scan((0, 0), MoveTail).GroupBy(p => p).Count();
 Console.WriteLine($"Answer part 1: {answer1}");
+
+var answer2 = Enumerable.Range(1, 9).Aggregate(headPositions, (p, _) => p.Scan((0, 0), MoveTail)).GroupBy(p => p).Count();
+Console.WriteLine($"Answer part 2: {answer2}");
