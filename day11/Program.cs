@@ -1,12 +1,12 @@
-﻿var lines = File.ReadAllText("test.txt");
+﻿var lines = File.ReadAllText("input.txt");
 
-static void PlayRounds(List<Monkey> monkeys, int rounds)
+static void PlayRounds(List<Monkey> monkeys, int rounds, Func<long, long> reliefFunc)
 {
     for (int r = 0; r < rounds; r++)
     {
         foreach (var monkey in monkeys)
         {
-            monkey.InspectItems();
+            monkey.InspectItems(reliefFunc);
             foreach (var (i, worryLevel) in monkey.Outbox)
             {
                 monkeys[i].AddItem(worryLevel);
@@ -43,40 +43,38 @@ var monkeysPart1 =
         .Split(Environment.NewLine + Environment.NewLine)
         .Select(Monkey.Create)
         .ToList();
-PlayRounds(monkeysPart1, 20);
+PlayRounds(monkeysPart1, 20, x => x / 3);
 var answer1 = MonkeyBusiness(monkeysPart1);
 Console.WriteLine($"Answer part 1: {answer1}");
 
 var monkeysPart2 =
     lines
         .Split(Environment.NewLine + Environment.NewLine)
-        .Select(Monkey.CreateWithoutRelief)
+        .Select(Monkey.Create)
         .ToList();
-PlayRounds(monkeysPart2, 1000);
+var lcd = monkeysPart2.Select(m => m.Divisor).Aggregate((x, y) => x * y);
+PlayRounds(monkeysPart2, 10_000, x => x % lcd);
 PrintInspections(monkeysPart2);
-// PlayRounds(monkeysPart2, 10_000);
-// var answer2 = MonkeyBusiness(monkeysPart2);
-// Console.WriteLine($"Answer part 2: {answer2}");
+var answer2 = MonkeyBusiness(monkeysPart2);
+Console.WriteLine($"Answer part 2: {answer2}");
 
 public class Monkey
 {
     private readonly List<long> _items;
     private readonly char _operator;
     private readonly long? _operand2;
-    private readonly long _divisor;
+    private readonly int _divisor;
     private readonly int _monkeyIfTrue;
     private readonly int _monkeyIfFalse;
-    private readonly long _relief;
     private List<(int, long)> _outbox;
 
     private Monkey(
         IEnumerable<long> items,
         char op,
         long? operand2,
-        long divisor,
+        int divisor,
         int monkeyIfTrue,
-        int monkeyIfFalse,
-        long relief)
+        int monkeyIfFalse)
     {
         _items = new List<long>(items);
         _operator = op;
@@ -84,7 +82,6 @@ public class Monkey
         _divisor = divisor;
         _monkeyIfTrue = monkeyIfTrue;
         _monkeyIfFalse = monkeyIfFalse;
-        _relief = relief;
         _outbox = new();
     }
 
@@ -99,6 +96,7 @@ public class Monkey
     }
 
     public IEnumerable<long> Items => _items;
+    public long Divisor => _divisor;
 
     public IEnumerable<(int, long)> Outbox => _outbox;
 
@@ -106,14 +104,14 @@ public class Monkey
 
     public void AddItem(long worryLevel) => _items.Add(worryLevel);
 
-    public void InspectItems()
+    public void InspectItems(Func<long, long> reliefFunc)
     {
-        _outbox = _items.Select(InspectItem).ToList();
+        _outbox = _items.Select(i => InspectItem(i, reliefFunc)).ToList();
         ItemsInspected += _items.Count;
         _items.Clear();
     }
 
-    private (int, long) InspectItem(long worryLevel)
+    private (int, long) InspectItem(long worryLevel, Func<long, long> reliefFunc)
     {
         var op2 = _operand2 ?? worryLevel;
         var newWorryLevel = _operator switch
@@ -121,15 +119,12 @@ public class Monkey
             '+' => worryLevel + op2,
             '*' => worryLevel * op2,
             _ => throw new InvalidOperationException("Unknown operator")
-        } / _relief;
+        };
+        newWorryLevel = reliefFunc(newWorryLevel);
         return newWorryLevel % _divisor == 0 ? (_monkeyIfTrue, newWorryLevel) : (_monkeyIfFalse, newWorryLevel);
     }
 
-    public static Monkey Create(string input) => CreateInt(input, 3);
-
-    public static Monkey CreateWithoutRelief(string input) => CreateInt(input, 1);
-
-    private static Monkey CreateInt(string input, int relief)
+    public static Monkey Create(string input)
     {
         var lines = input.Split(Environment.NewLine);
         var items = lines[1][18..].Split(',').Select(long.Parse);
@@ -138,6 +133,6 @@ public class Monkey
         var divisor = int.Parse(lines[3][21..]);
         var monkeyIfTrue = int.Parse(lines[4][29..]);
         var monkeyIfFalse = int.Parse(lines[5][30..]);
-        return new Monkey(items, op, operand2, divisor, monkeyIfTrue, monkeyIfFalse, relief);
+        return new Monkey(items, op, operand2, divisor, monkeyIfTrue, monkeyIfFalse);
     }
 }
