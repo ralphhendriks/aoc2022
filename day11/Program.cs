@@ -49,18 +49,17 @@ Console.WriteLine($"Answer part 1: {answer1}");
 
 public class Monkey
 {
-    private readonly List<int> _items;
+    private readonly List<long> _items;
     private readonly char _operator;
     private readonly int? _operand2;
     private readonly int _divisor;
     private readonly int _monkeyIfTrue;
     private readonly int _monkeyIfFalse;
-    private List<(int, int)> _outbox;
-    private readonly int _itemsInspected;
+    private List<(int, long)> _outbox;
 
-    private Monkey(IEnumerable<int> items, char op, int? operand2, int divisor, int monkeyIfTrue, int monkeyIfFalse)
+    private Monkey(IEnumerable<long> items, char op, int? operand2, int divisor, int monkeyIfTrue, int monkeyIfFalse)
     {
-        _items = new List<int>(items);
+        _items = new List<long>(items);
         _operator = op;
         _operand2 = operand2;
         _divisor = divisor;
@@ -79,13 +78,13 @@ public class Monkey
         Console.WriteLine("If false throw to: " + _monkeyIfFalse);
     }
 
-    public IEnumerable<int> Items => _items;
+    public IEnumerable<long> Items => _items;
 
-    public IEnumerable<(int, int)> Outbox => _outbox;
+    public IEnumerable<(int, long)> Outbox => _outbox;
 
     public int ItemsInspected { get; private set; }
 
-    public void AddItem(int worryLevel) => _items.Add(worryLevel);
+    public void AddItem(long worryLevel) => _items.Add(worryLevel);
 
     public void InspectItems()
     {
@@ -94,7 +93,7 @@ public class Monkey
         _items.Clear();
     }
 
-    private (int, int) InspectItem(int worryLevel)
+    private (int, long) InspectItem(long worryLevel)
     {
         var op2 = _operand2 ?? worryLevel;
         var newWorryLevel = _operator switch
@@ -109,7 +108,7 @@ public class Monkey
     public static Monkey Create(string input)
     {
         var lines = input.Split(Environment.NewLine);
-        var items = lines[1][18..].Split(',').Select(int.Parse);
+        var items = lines[1][18..].Split(',').Select(long.Parse);
         var op = lines[2][23];
         int? operand2 = lines[2][25..] == "old" ? null : int.Parse(lines[2][25..]);
         var divisor = int.Parse(lines[3][21..]);
