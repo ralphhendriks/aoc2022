@@ -1,12 +1,12 @@
-﻿var lines = File.ReadAllText("input.txt");
+﻿var lines = File.ReadAllText("input.txt").Split(Environment.NewLine + Environment.NewLine);
 
-static void PlayRounds(List<Monkey> monkeys, int rounds, Func<long, long> reliefFunc)
+static void PlayRounds(List<Monkey> monkeys, int rounds, Func<long, long> relief)
 {
     for (int r = 0; r < rounds; r++)
     {
         foreach (var monkey in monkeys)
         {
-            monkey.InspectItems(reliefFunc);
+            monkey.InspectItems(relief);
             foreach (var (i, worryLevel) in monkey.Outbox)
             {
                 monkeys[i].AddItem(worryLevel);
@@ -32,29 +32,16 @@ static void PrintInspections(List<Monkey> monkeys)
 }
 
 static long MonkeyBusiness(List<Monkey> monkeys) =>
-    monkeys
-        .Select(m => m.ItemsInspected)
-        .OrderByDescending(x => x)
-        .Take(2)
-        .Aggregate((x, y) => x * y);
+    monkeys.Select(m => m.ItemsInspected).OrderByDescending(x => x).Take(2).Aggregate(((x, y) => x * y));
 
-var monkeysPart1 =
-    lines
-        .Split(Environment.NewLine + Environment.NewLine)
-        .Select(Monkey.Create)
-        .ToList();
+var monkeysPart1 = lines.Select(Monkey.Create).ToList();
 PlayRounds(monkeysPart1, 20, x => x / 3);
 var answer1 = MonkeyBusiness(monkeysPart1);
 Console.WriteLine($"Answer part 1: {answer1}");
 
-var monkeysPart2 =
-    lines
-        .Split(Environment.NewLine + Environment.NewLine)
-        .Select(Monkey.Create)
-        .ToList();
+var monkeysPart2 = lines.Select(Monkey.Create).ToList();
 var lcd = monkeysPart2.Select(m => m.Divisor).Aggregate((x, y) => x * y);
 PlayRounds(monkeysPart2, 10_000, x => x % lcd);
-PrintInspections(monkeysPart2);
 var answer2 = MonkeyBusiness(monkeysPart2);
 Console.WriteLine($"Answer part 2: {answer2}");
 
@@ -62,37 +49,21 @@ public class Monkey
 {
     private readonly List<long> _items;
     private readonly char _operator;
-    private readonly long? _operand2;
+    private readonly long? _rhs;
     private readonly int _divisor;
     private readonly int _monkeyIfTrue;
     private readonly int _monkeyIfFalse;
     private List<(int, long)> _outbox;
 
-    private Monkey(
-        IEnumerable<long> items,
-        char op,
-        long? operand2,
-        int divisor,
-        int monkeyIfTrue,
-        int monkeyIfFalse)
+    private Monkey(IEnumerable<long> items, char op, long? rhs, int divisor, int monkeyIfTrue, int monkeyIfFalse)
     {
         _items = new List<long>(items);
         _operator = op;
-        _operand2 = operand2;
+        _rhs = rhs;
         _divisor = divisor;
         _monkeyIfTrue = monkeyIfTrue;
         _monkeyIfFalse = monkeyIfFalse;
         _outbox = new();
-    }
-
-    public void Print()
-    {
-        Console.WriteLine("Items: " + string.Join(',', _items));
-        Console.WriteLine("Operator: " + _operator);
-        Console.WriteLine("Operand 2: " + _operand2 ?? "old");
-        Console.WriteLine("Divisor: " + _divisor);
-        Console.WriteLine("If true throw to: " + _monkeyIfTrue);
-        Console.WriteLine("If false throw to: " + _monkeyIfFalse);
     }
 
     public IEnumerable<long> Items => _items;
@@ -104,20 +75,19 @@ public class Monkey
 
     public void AddItem(long worryLevel) => _items.Add(worryLevel);
 
-    public void InspectItems(Func<long, long> reliefFunc)
+    public void InspectItems(Func<long, long> relief)
     {
-        _outbox = _items.Select(i => InspectItem(i, reliefFunc)).ToList();
+        _outbox = _items.Select(i => InspectItem(i, relief)).ToList();
         ItemsInspected += _items.Count;
         _items.Clear();
     }
 
     private (int, long) InspectItem(long worryLevel, Func<long, long> reliefFunc)
     {
-        var op2 = _operand2 ?? worryLevel;
         var newWorryLevel = _operator switch
         {
-            '+' => worryLevel + op2,
-            '*' => worryLevel * op2,
+            '+' => worryLevel + (_rhs ?? worryLevel),
+            '*' => worryLevel * (_rhs ?? worryLevel),
             _ => throw new InvalidOperationException("Unknown operator")
         };
         newWorryLevel = reliefFunc(newWorryLevel);
