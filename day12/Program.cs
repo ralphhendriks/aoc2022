@@ -58,8 +58,7 @@ static int ShortestPath((int, int) start, (int, int) end, char[,] map)
     {
         d += 1;
         front = new HashSet<(int, int)>(front.SelectMany(p => PossibleMoves(p, map)).Where(p => !visited.Contains(p)));
-        if (front.Count == 0)
-            return -1;
+        if (front.Count == 0) return -1; // route not possible
         visited.UnionWith(front);
     }
 
